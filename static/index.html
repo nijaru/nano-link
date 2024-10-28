@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>nano link</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <meta name="description" content="A simple URL shortener service" />
+    <meta property="og:title" content="nano link" />
+    <meta property="og:description" content="A simple URL shortener service" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="http://localhost:8080" />
+    <meta property="og:image" content="http://localhost:8080/static/logo.png" />
+</head>
+<body class="bg-gray-900 text-white flex items-center justify-center h-screen">
+    <div class="bg-gray-800 p-8 rounded shadow-md text-center">
+        <h1 class="text-2xl font-bold mb-4">nano link</h1>
+        <form id="urlForm" class="space-y-4">
+            <label for="urlInput" class="sr-only">Enter URL</label>
+            <input
+                type="url"
+                id="urlInput"
+                placeholder="Enter URL"
+                required
+                class="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white"
+            />
+            <button
+                type="submit"
+                class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+            >
+                Shorten
+            </button>
+        </form>
+        <div id="result" class="mt-4"></div>
+        <div id="loading" class="mt-4 hidden">Loading...</div>
+    </div>
+    <script>
+        document.getElementById("urlForm").addEventListener("submit", (event) => {
+            event.preventDefault();
+            const urlInput = document.getElementById("urlInput").value;
+            const resultDiv = document.getElementById("result");
+            const loadingDiv = document.getElementById("loading");
+
+            // Clear previous results or errors
+            resultDiv.innerHTML = "";
+            loadingDiv.classList.remove("hidden");
+
+            // Basic URL format validation
+            try {
+                new URL(urlInput);
+            } catch (_) {
+                resultDiv.innerHTML = `<p class="text-red-500">Please enter a valid URL.</p>`;
+                loadingDiv.classList.add("hidden");
+                return;
+            }
+
+            fetch("/shorten", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ url: urlInput }),
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        return response.text().then((text) => { throw new Error(text); });
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    resultDiv.innerHTML = `<p>Shortened URL: <a href="${data.short_url}" target="_blank" class="text-blue-500 underline">${data.short_url}</a></p>`;
+                })
+                .catch((error) => {
+                    resultDiv.innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
+                    console.error("Error:", error);
+                })
+                .finally(() => {
+                    loadingDiv.classList.add("hidden");
+                });
+        });
+    </script>
+</body>
+</html>
