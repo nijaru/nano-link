@@ -1,83 +1,256 @@
 <!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>nano link</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-    <meta name="description" content="A simple URL shortener service" />
-    <meta property="og:title" content="nano link" />
-    <meta property="og:description" content="A simple URL shortener service" />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="http://localhost:8080" />
-    <meta property="og:image" content="http://localhost:8080/static/logo.png" />
-</head>
-<body class="bg-gray-900 text-white flex items-center justify-center h-screen">
-    <div class="bg-gray-800 p-8 rounded shadow-md text-center">
-        <h1 class="text-2xl font-bold mb-4">nano link</h1>
-        <form id="urlForm" class="space-y-4">
-            <label for="urlInput" class="sr-only">Enter URL</label>
-            <input
-                type="url"
-                id="urlInput"
-                placeholder="Enter URL"
-                required
-                class="w-full p-2 border border-gray-600 rounded bg-gray-700 text-white"
-            />
-            <button
-                type="submit"
-                class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-            >
-                Shorten
-            </button>
-        </form>
-        <div id="result" class="mt-4"></div>
-        <div id="loading" class="mt-4 hidden">Loading...</div>
-    </div>
-    <script>
-        document.getElementById("urlForm").addEventListener("submit", (event) => {
-            event.preventDefault();
-            const urlInput = document.getElementById("urlInput").value;
-            const resultDiv = document.getElementById("result");
-            const loadingDiv = document.getElementById("loading");
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>nano link</title>
+        <link
+            href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+            rel="stylesheet"
+        />
+        <!-- QR Code library -->
+        <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+        <meta name="description" content="A simple URL shortener service" />
+        <meta property="og:title" content="nano link" />
+        <meta
+            property="og:description"
+            content="A simple URL shortener service"
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="http://localhost:8080" />
+        <meta
+            property="og:image"
+            content="http://localhost:8080/static/logo.png"
+        />
+    </head>
+    <body class="bg-gray-900 text-white min-h-screen">
+        <div class="container mx-auto px-4 py-8">
+            <div class="max-w-2xl mx-auto">
+                <!-- Main Form Section -->
+                <div class="bg-gray-800 p-8 rounded-lg shadow-md">
+                    <h1 class="text-3xl font-bold mb-6 text-center">
+                        nano link
+                    </h1>
+                    <form id="urlForm" class="space-y-4">
+                        <div class="relative">
+                            <input
+                                type="url"
+                                id="urlInput"
+                                placeholder="Enter URL to shorten"
+                                required
+                                class="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white pr-24"
+                            />
+                            <button
+                                type="submit"
+                                class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-500 text-white px-4 py-1 rounded-md hover:bg-blue-600 transition-colors"
+                            >
+                                Shorten
+                            </button>
+                        </div>
+                    </form>
 
-            // Clear previous results or errors
-            resultDiv.innerHTML = "";
-            loadingDiv.classList.remove("hidden");
+                    <!-- Loading Spinner -->
+                    <div id="loading" class="hidden mt-4">
+                        <div class="flex justify-center">
+                            <div
+                                class="animate-spin rounded-full h-8 w-8 border-b-2 border-white"
+                            ></div>
+                        </div>
+                    </div>
 
-            // Basic URL format validation
-            try {
-                new URL(urlInput);
-            } catch (_) {
-                resultDiv.innerHTML = `<p class="text-red-500">Please enter a valid URL.</p>`;
-                loadingDiv.classList.add("hidden");
-                return;
+                    <!-- Result Section -->
+                    <div id="result" class="mt-6 space-y-4 hidden">
+                        <div class="bg-gray-700 p-4 rounded-lg">
+                            <h2 class="text-lg font-semibold mb-2">
+                                Shortened URL
+                            </h2>
+                            <div class="flex items-center space-x-2">
+                                <input
+                                    type="text"
+                                    id="shortUrlInput"
+                                    readonly
+                                    class="flex-1 p-2 bg-gray-600 rounded border border-gray-500"
+                                />
+                                <button
+                                    onclick="copyToClipboard()"
+                                    class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
+                                >
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- QR Code Section -->
+                        <div class="bg-gray-700 p-4 rounded-lg">
+                            <h2 class="text-lg font-semibold mb-2">QR Code</h2>
+                            <div id="qrcode" class="flex justify-center"></div>
+                            <button
+                                onclick="downloadQR()"
+                                class="mt-4 w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+                            >
+                                Download QR Code
+                            </button>
+                        </div>
+
+                        <!-- Statistics Section -->
+                        <div class="bg-gray-700 p-4 rounded-lg">
+                            <h2 class="text-lg font-semibold mb-2">Statistics</h2>
+                            <div id="stats" class="grid grid-cols-2 gap-4">
+                                <div class="text-center">
+                                    <p class="text-gray-400">Total Visits</p>
+                                    <p class="text-xl font-bold" id="visitCount">0</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-gray-400">Created</p>
+                                    <p class="text-xl font-bold" id="createdAt"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                <!-- Recent URLs Section -->
+                <div class="mt-8 bg-gray-800 p-8 rounded-lg shadow-md">
+                    <h2 class="text-xl font-bold mb-4">Recent Links</h2>
+                    <div id="recentUrls" class="space-y-4">
+                        <!-- Recent URLs will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            let currentQR = null;
+
+            function copyToClipboard() {
+                const shortUrlInput = document.getElementById("shortUrlInput");
+                shortUrlInput.select();
+                document.execCommand("copy");
+
+                // Show feedback
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = "Copied!";
+                button.classList.remove("bg-green-500", "hover:bg-green-600");
+                button.classList.add("bg-gray-500");
+
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove("bg-gray-500");
+                    button.classList.add("bg-green-500", "hover:bg-green-600");
+                }, 2000);
             }
 
-            fetch("/shorten", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ url: urlInput }),
-            })
-                .then((response) => {
-                    if (!response.ok) {
-                        return response.text().then((text) => { throw new Error(text); });
+            function generateQR(url) {
+                const qrcodeElement = document.getElementById("qrcode");
+                qrcodeElement.innerHTML = ""; // Clear previous QR code
+
+                // Create a new canvas element
+                QRCode.toCanvas(url, {width: 200}, function (error, canvas) {
+                    if (error) {
+                        console.error(error);
+                        return;
                     }
-                    return response.json();
-                })
-                .then((data) => {
-                    resultDiv.innerHTML = `<p>Shortened URL: <a href="${data.short_url}" target="_blank" class="text-blue-500 underline">${data.short_url}</a></p>`;
-                })
-                .catch((error) => {
-                    resultDiv.innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
-                    console.error("Error:", error);
-                })
-                .finally(() => {
-                    loadingDiv.classList.add("hidden");
+                    // Clear the container and append the new canvas
+                    qrcodeElement.innerHTML = '';
+                    qrcodeElement.appendChild(canvas);
+                    currentQR = canvas;
                 });
-        });
-    </script>
-</body>
+            }
+
+            function downloadQR() {
+                if (currentQR) {
+                    const link = document.createElement("a");
+                    link.download = "qrcode.png";
+                    link.href = currentQR.toDataURL();
+                    link.click();
+                }
+            }
+
+            function updateStats() {
+                fetch("/api/stats")
+                    .then((response) => response.json())
+                    .then((stats) => {
+                        document.getElementById("totalUrls").textContent =
+                            stats.total_urls;
+                        document.getElementById("totalVisits").textContent =
+                            stats.total_visits;
+                        if (stats.last_created) {
+                            const date = new Date(stats.last_created);
+                            document.getElementById("lastCreated").textContent =
+                                date.toLocaleDateString() +
+                                " " +
+                                date.toLocaleTimeString();
+                        } else {
+                            document.getElementById("lastCreated").textContent =
+                                "No URLs yet";
+                        }
+                    })
+                    .catch((error) =>
+                        console.error("Error fetching stats:", error),
+                    );
+            }
+
+            function addToRecentUrls(originalUrl, shortUrl) {
+                const recentUrls = document.getElementById("recentUrls");
+                const urlElement = document.createElement("div");
+                urlElement.className =
+                    "bg-gray-700 p-4 rounded-lg flex justify-between items-center";
+                urlElement.innerHTML = `
+                <div class="overflow-hidden">
+                    <p class="text-sm text-gray-400 truncate">${originalUrl}</p>
+                    <a href="${shortUrl}" class="text-blue-400 hover:text-blue-300" target="_blank">${shortUrl}</a>
+                </div>
+                <button onclick="copyToClipboard('${shortUrl}')" class="ml-4 bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors">
+                    Copy
+                </button>
+            `;
+                recentUrls.insertBefore(urlElement, recentUrls.firstChild);
+            }
+
+            document
+                .getElementById("urlForm")
+                .addEventListener("submit", (event) => {
+                    event.preventDefault();
+                    const urlInput = document.getElementById("urlInput");
+                    const resultDiv = document.getElementById("result");
+                    const loadingDiv = document.getElementById("loading");
+
+                    resultDiv.classList.add("hidden");
+                    loadingDiv.classList.remove("hidden");
+
+                    try {
+                        new URL(urlInput.value);
+                    } catch (_) {
+                        alert("Please enter a valid URL");
+                        loadingDiv.classList.add("hidden");
+                        return;
+                    }
+
+                    fetch("/api/shorten", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ url: urlInput.value }),
+                    })
+                        .then((response) => response.json())
+                        .then((data) => {
+                            document.getElementById("shortUrlInput").value = data.short_url;
+                            // Update creation time
+                            const createdAt = new Date(data.url.created_at);
+                            document.getElementById("createdAt").textContent =
+                                createdAt.toLocaleDateString() + " " + createdAt.toLocaleTimeString();
+                            document.getElementById("visitCount").textContent = data.url.visits;
+                            generateQR(data.short_url);
+                            addToRecentUrls(urlInput.value, data.short_url);
+                            resultDiv.classList.remove("hidden");
+                            urlInput.value = "";
+                        })
+                        .catch((error) => {
+                            console.error("Error:", error);
+                            alert("An error occurred while shortening the URL");
+                        })
+                        .finally(() => {
+                            loadingDiv.classList.add("hidden");
+                        });
+                });
+            </script>
+    </body>
 </html>
