@@ -4,33 +4,83 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>nano link</title>
-        <link
-            href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
-            rel="stylesheet"
-        />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
         <!-- QR Code library -->
         <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
         <meta name="description" content="A simple URL shortener service" />
         <meta property="og:title" content="nano link" />
-        <meta
-            property="og:description"
-            content="A simple URL shortener service"
-        />
+        <meta property="og:description" content="A simple URL shortener service" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="http://localhost:8080" />
-        <meta
-            property="og:image"
-            content="http://localhost:8080/static/logo.png"
-        />
+        <meta property="og:image" content="http://localhost:8080/static/logo.png" />
+        <style>
+            body {
+                font-family: 'Inter', sans-serif;
+                background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+                background-attachment: fixed;
+            }
+            .nano-shadow {
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            }
+            .nano-glow {
+                box-shadow: 0 0 15px rgba(66, 153, 225, 0.5);
+            }
+            .nano-card {
+                background: rgba(26, 32, 44, 0.8);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            .nano-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            }
+            .nano-input {
+                transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            }
+            .nano-input:focus {
+                border-color: #4299e1;
+                box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+            }
+            .nano-btn {
+                transition: all 0.3s ease;
+            }
+            .nano-btn:hover {
+                transform: translateY(-2px);
+            }
+            .nano-icon {
+                fill: currentColor;
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .fade-in {
+                animation: fadeIn 0.5s ease forwards;
+            }
+        </style>
     </head>
-    <body class="bg-gray-900 text-white min-h-screen">
-        <div class="container mx-auto px-4 py-8">
+    <body class="text-white min-h-screen">
+        <div class="container mx-auto px-4 py-12">
             <div class="max-w-2xl mx-auto">
+                <!-- Header/Logo -->
+                <div class="flex justify-center mb-8">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-8 h-8 text-blue-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M13.5 2H12C7.5 2 4 5.5 4 10V14C4 18.5 7.5 22 12 22H14C18.5 22 22 18.5 22 14V12.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M11 15.5C11 15.5 14 12.5 15.5 11C17 9.5 19 7.5 20 8.5C21 9.5 19 11.5 17.5 13C16 14.5 13 17.5 13 17.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M11 15.5L9 17.5C8.5 18 8.5 19 9 19.5C9.5 20 10.5 20 11 19.5L13 17.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <h1 class="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
+                            nano link
+                        </h1>
+                    </div>
+                </div>
+
                 <!-- Main Form Section -->
-                <div class="bg-gray-800 p-8 rounded-lg shadow-md">
-                    <h1 class="text-3xl font-bold mb-6 text-center">
-                        nano link
-                    </h1>
+                <div class="nano-card p-8 rounded-xl nano-shadow mb-8">
+                    <p class="text-center text-gray-400 mb-6">Transform your long URLs into clean, manageable links</p>
                     <form id="urlForm" class="space-y-4">
                         <div class="relative">
                             <input
@@ -38,11 +88,11 @@
                                 id="urlInput"
                                 placeholder="Enter URL to shorten"
                                 required
-                                class="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white pr-24"
+                                class="w-full p-4 border border-gray-700 rounded-lg bg-gray-800 text-white pr-28 nano-input focus:outline-none"
                             />
                             <button
                                 type="submit"
-                                class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-500 text-white px-4 py-1 rounded-md hover:bg-blue-600 transition-colors"
+                                class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-5 py-2 rounded-md hover:from-blue-600 hover:to-indigo-700 nano-btn focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
                             >
                                 Shorten
                             </button>
@@ -50,18 +100,20 @@
                     </form>
 
                     <!-- Loading Spinner -->
-                    <div id="loading" class="hidden mt-4">
+                    <div id="loading" class="hidden mt-6">
                         <div class="flex justify-center">
-                            <div
-                                class="animate-spin rounded-full h-8 w-8 border-b-2 border-white"
-                            ></div>
+                            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-400"></div>
                         </div>
                     </div>
 
                     <!-- Result Section -->
-                    <div id="result" class="mt-6 space-y-4 hidden">
-                        <div class="bg-gray-700 p-4 rounded-lg">
-                            <h2 class="text-lg font-semibold mb-2">
+                    <div id="result" class="mt-8 space-y-6 hidden fade-in">
+                        <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
+                            <h2 class="text-lg font-semibold mb-3 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-blue-400" viewBox="0 0 24 24" fill="none">
+                                    <path d="M13.5 12H21M21 12L18.5 9.5M21 12L18.5 14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M16 5H8C4.13401 5 1 8.13401 1 12C1 15.866 4.13401 19 8 19H16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                </svg>
                                 Shortened URL
                             </h2>
                             <div class="flex items-center space-x-2">
@@ -69,50 +121,87 @@
                                     type="text"
                                     id="shortUrlInput"
                                     readonly
-                                    class="flex-1 p-2 bg-gray-600 rounded border border-gray-500"
+                                    class="flex-1 p-3 bg-gray-900 rounded-lg border border-gray-700 text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
                                 />
                                 <button
                                     onclick="copyToClipboard()"
-                                    class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
+                                    class="bg-green-500 text-white px-4 py-3 rounded-lg hover:bg-green-600 nano-btn flex items-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
                                 >
+                                    <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none">
+                                        <path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V12M11 14H9M12 17H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
                                     Copy
                                 </button>
                             </div>
                         </div>
 
                         <!-- QR Code Section -->
-                        <div class="bg-gray-700 p-4 rounded-lg">
-                            <h2 class="text-lg font-semibold mb-2">QR Code</h2>
-                            <div id="qrcode" class="flex justify-center"></div>
+                        <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
+                            <h2 class="text-lg font-semibold mb-3 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-blue-400" viewBox="0 0 24 24" fill="none">
+                                    <path d="M10 4H4V10H10V4Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M10 14H4V20H10V14Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M20 4H14V10H20V4Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M14 14H20V20H14V14Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                QR Code
+                            </h2>
+                            <div id="qrcode" class="flex justify-center bg-white p-4 rounded-lg"></div>
                             <button
                                 onclick="downloadQR()"
-                                class="mt-4 w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+                                class="mt-4 w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-3 rounded-lg hover:from-blue-600 hover:to-indigo-700 nano-btn flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
                             >
+                                <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none">
+                                    <path d="M12 17V3M12 17L8 13M12 17L16 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M7 21H17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
                                 Download QR Code
                             </button>
                         </div>
 
                         <!-- Statistics Section -->
-                        <div class="bg-gray-700 p-4 rounded-lg">
-                            <h2 class="text-lg font-semibold mb-2">Statistics</h2>
-                            <div id="stats" class="grid grid-cols-2 gap-4">
-                                <div class="text-center">
-                                    <p class="text-gray-400">Total Visits</p>
-                                    <p class="text-xl font-bold" id="visitCount">0</p>
+                        <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
+                            <h2 class="text-lg font-semibold mb-3 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-blue-400" viewBox="0 0 24 24" fill="none">
+                                    <path d="M8 13V17M12 9V17M16 5V17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M3 20H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Statistics
+                            </h2>
+                            <div id="stats" class="grid grid-cols-2 gap-6">
+                                <div class="text-center bg-gray-900 p-4 rounded-lg border border-gray-700">
+                                    <p class="text-gray-400 mb-1">Total Visits</p>
+                                    <p class="text-2xl font-bold text-blue-400" id="visitCount">0</p>
                                 </div>
-                                <div class="text-center">
-                                    <p class="text-gray-400">Created</p>
-                                    <p class="text-xl font-bold" id="createdAt"></p>
+                                <div class="text-center bg-gray-900 p-4 rounded-lg border border-gray-700">
+                                    <p class="text-gray-400 mb-1">Created</p>
+                                    <p class="text-lg font-bold text-blue-400" id="createdAt"></p>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
 
                 <!-- Recent URLs Section -->
-                <div class="mt-8 bg-gray-800 p-8 rounded-lg shadow-md">
-                    <h2 class="text-xl font-bold mb-4">Recent Links</h2>
+                <div class="nano-card p-8 rounded-xl nano-shadow">
+                    <h2 class="text-xl font-bold mb-6 flex items-center">
+                        <svg class="w-6 h-6 mr-2 text-blue-400" viewBox="0 0 24 24" fill="none">
+                            <path d="M12 8V12L15 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Recent Links
+                    </h2>
                     <div id="recentUrls" class="space-y-4">
                         <!-- Recent URLs will be inserted here -->
+                        <div class="text-center text-gray-500 p-4">
+                            Your recent links will appear here
+                        </div>
                     </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="mt-8 text-center text-gray-500 text-sm">
+                    <p>© 2025 nano link | A lightning-fast URL shortener</p>
                 </div>
             </div>
         </div>
@@ -126,31 +215,65 @@
                 document.execCommand("copy");
 
                 // Show feedback
-                const button = event.target;
-                const originalText = button.textContent;
-                button.textContent = "Copied!";
+                const button = event.target.closest('button');
+                const originalText = button.innerHTML;
+                button.innerHTML = `
+                    <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none">
+                        <path d="M5 13L9 17L19 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Copied!
+                `;
                 button.classList.remove("bg-green-500", "hover:bg-green-600");
                 button.classList.add("bg-gray-500");
 
                 setTimeout(() => {
-                    button.textContent = originalText;
+                    button.innerHTML = originalText;
                     button.classList.remove("bg-gray-500");
                     button.classList.add("bg-green-500", "hover:bg-green-600");
                 }, 2000);
+            }
+
+            function copyUrlFromRecent(url) {
+                navigator.clipboard.writeText(url).then(() => {
+                    const button = event.target.closest('button');
+                    const originalText = button.innerHTML;
+                    button.innerHTML = `
+                        <svg class="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none">
+                            <path d="M5 13L9 17L19 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Copied!
+                    `;
+                    button.classList.remove("bg-green-500", "hover:bg-green-600");
+                    button.classList.add("bg-gray-500");
+
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.classList.remove("bg-gray-500");
+                        button.classList.add("bg-green-500", "hover:bg-green-600");
+                    }, 2000);
+                });
             }
 
             function generateQR(url) {
                 const qrcodeElement = document.getElementById("qrcode");
                 qrcodeElement.innerHTML = ""; // Clear previous QR code
 
-                // Create a new canvas element
-                QRCode.toCanvas(url, {width: 200}, function (error, canvas) {
+                // Create a new canvas element with styling
+                QRCode.toCanvas(url, {
+                    width: 200,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    }
+                }, function (error, canvas) {
                     if (error) {
                         console.error(error);
                         return;
                     }
                     // Clear the container and append the new canvas
                     qrcodeElement.innerHTML = '';
+                    canvas.style.borderRadius = '8px';
                     qrcodeElement.appendChild(canvas);
                     currentQR = canvas;
                 });
@@ -191,18 +314,27 @@
 
             function addToRecentUrls(originalUrl, shortUrl) {
                 const recentUrls = document.getElementById("recentUrls");
+                
+                // Remove placeholder if present
+                const placeholder = recentUrls.querySelector('.text-center.text-gray-500');
+                if (placeholder) {
+                    recentUrls.removeChild(placeholder);
+                }
+                
                 const urlElement = document.createElement("div");
-                urlElement.className =
-                    "bg-gray-700 p-4 rounded-lg flex justify-between items-center";
+                urlElement.className = "bg-gray-800 p-4 rounded-lg border border-gray-700 flex justify-between items-center fade-in";
                 urlElement.innerHTML = `
-                <div class="overflow-hidden">
-                    <p class="text-sm text-gray-400 truncate">${originalUrl}</p>
-                    <a href="${shortUrl}" class="text-blue-400 hover:text-blue-300" target="_blank">${shortUrl}</a>
-                </div>
-                <button onclick="copyToClipboard('${shortUrl}')" class="ml-4 bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition-colors">
-                    Copy
-                </button>
-            `;
+                    <div class="overflow-hidden">
+                        <p class="text-sm text-gray-400 truncate max-w-xs">${originalUrl}</p>
+                        <a href="${shortUrl}" class="text-blue-400 hover:text-blue-300 font-medium" target="_blank">${shortUrl}</a>
+                    </div>
+                    <button onclick="copyUrlFromRecent('${shortUrl}')" class="ml-4 bg-green-500 text-white px-3 py-1 rounded-lg hover:bg-green-600 nano-btn flex items-center focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
+                        <svg class="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none">
+                            <path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V18M8 5C8 6.10457 8.89543 7 10 7H12C13.1046 7 14 6.10457 14 5M8 5C8 3.89543 8.89543 3 10 3H12C13.1046 3 14 3.89543 14 5M14 5H16C17.1046 5 18 5.89543 18 7V12M11 14H9M12 17H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Copy
+                    </button>
+                `;
                 recentUrls.insertBefore(urlElement, recentUrls.firstChild);
             }
 
@@ -240,7 +372,11 @@
                             document.getElementById("visitCount").textContent = data.url.visits;
                             generateQR(data.short_url);
                             addToRecentUrls(urlInput.value, data.short_url);
+                            
+                            // Show result with animation
                             resultDiv.classList.remove("hidden");
+                            resultDiv.classList.add("fade-in");
+                            
                             urlInput.value = "";
                         })
                         .catch((error) => {
@@ -251,6 +387,6 @@
                             loadingDiv.classList.add("hidden");
                         });
                 });
-            </script>
+        </script>
     </body>
 </html>
