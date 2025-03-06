@@ -1,40 +1,56 @@
 package handlers
 
 import (
-	"log"
+	"context"
+	"errors"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/nijaru/nano-link/internal/errors"
+	appErrors "github.com/nijaru/nano-link/internal/errors"
+	customLogger "github.com/nijaru/nano-link/internal/logger"
 	"github.com/nijaru/nano-link/internal/models"
 	"github.com/nijaru/nano-link/internal/service"
 )
 
+// URLHandler handles HTTP requests related to URLs
 type URLHandler struct {
 	service *service.URLService
 }
 
+// NewURLHandler creates a new URL handler
 func NewURLHandler(service *service.URLService) *URLHandler {
 	return &URLHandler{service: service}
 }
 
+// CreateShortURL handles the creation of a new short URL
 func (h *URLHandler) CreateShortURL(c *fiber.Ctx) error {
-	var request struct {
-		URL string `json:"url"`
-	}
+	// Extract request context
+	ctx, cancel := context.WithTimeout(c.Context(), 5*time.Second)
+	defer cancel()
 
+	// Parse request body
+	var request service.CreateURLRequest
 	if err := c.BodyParser(&request); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid request body")
 	}
 
-	url, err := h.service.CreateShortURL(request.URL)
+	// Create short URL
+	url, err := h.service.CreateShortURL(ctx, request.URL, request.CustomCode)
 	if err != nil {
-		switch err.(type) {
-		case *errors.AppError:
-			appErr := err.(*errors.AppError)
-			return fiber.NewError(fiber.StatusBadRequest, appErr.Message)
-		default:
-			return fiber.NewError(fiber.StatusInternalServerError, "Failed to create short URL")
+		var appErr *appErrors.AppError
+		if errors.As(err, &appErr) {
+			switch {
+			case errors.Is(err, appErrors.ErrInvalidInput):
+				return fiber.NewError(fiber.StatusBadRequest, appErr.Message)
+			case errors.Is(err, appErrors.ErrInternalError):
+				customLogger.Error(err, "Failed to create short URL")
+				return fiber.NewError(fiber.StatusInternalServerError, "Failed to create short URL")
+			default:
+				return fiber.NewError(fiber.StatusBadRequest, appErr.Message)
+			}
 		}
+		customLogger.Error(err, "Unexpected error creating short URL")
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to create short URL")
 	}
 
 	return c.JSON(models.URLResponse{
@@ -45,38 +61,53 @@ func (h *URLHandler) CreateShortURL(c *fiber.Ctx) error {
 
 // HandleRedirect handles redirecting short URLs to their original URL
 func (h *URLHandler) HandleRedirect(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(c.Context(), 5*time.Second)
+	defer cancel()
+	
 	code := c.Params("code")
+	if code == "" {
+		return c.Redirect("/") // Redirect to homepage if no code provided
+	}
 
-	url, err := h.service.GetURL(code)
+	url, err := h.service.GetURL(ctx, code)
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Failed to retrieve URL")
-	}
-
-	if url == nil {
-		return c.Redirect("/") // Redirect to homepage if URL not found
-	}
-
-	// Increment visits asynchronously
-	go func() {
-		if err := h.service.IncrementVisits(code); err != nil {
-			log.Printf("Failed to increment visits: %v", err)
+		var appErr *appErrors.AppError
+		if errors.As(err, &appErr) && errors.Is(err, appErrors.ErrNotFound) {
+			return c.Redirect("/") // Redirect to homepage if URL not found
 		}
-	}()
+		customLogger.Error(err, "Failed to retrieve URL", map[string]interface{}{"code": code})
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to process redirect")
+	}
+
+	// Increment visits with a separate context that won't be canceled when this handler returns
+	backgroundCtx := context.Background()
+	go func(ctx context.Context, code string) {
+		if err := h.service.IncrementVisits(ctx, code); err != nil {
+			customLogger.Error(err, "Failed to increment visits", map[string]interface{}{"code": code})
+		}
+	}(backgroundCtx, code)
 
 	return c.Redirect(url.OriginalURL, fiber.StatusTemporaryRedirect)
 }
 
 // GetURLInfo returns information about a shortened URL
 func (h *URLHandler) GetURLInfo(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(c.Context(), 5*time.Second)
+	defer cancel()
+	
 	code := c.Params("code")
-
-	url, err := h.service.GetURL(code)
-	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Failed to retrieve URL")
+	if code == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "Code parameter is required")
 	}
 
-	if url == nil {
-		return fiber.NewError(fiber.StatusNotFound, "URL not found")
+	url, err := h.service.GetURL(ctx, code)
+	if err != nil {
+		var appErr *appErrors.AppError
+		if errors.As(err, &appErr) && errors.Is(err, appErrors.ErrNotFound) {
+			return fiber.NewError(fiber.StatusNotFound, "URL not found")
+		}
+		customLogger.Error(err, "Failed to retrieve URL", map[string]interface{}{"code": code})
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to retrieve URL")
 	}
 
 	return c.JSON(models.URLResponse{
@@ -87,9 +118,21 @@ func (h *URLHandler) GetURLInfo(c *fiber.Ctx) error {
 
 // GetRecentURLs returns recently created short URLs
 func (h *URLHandler) GetRecentURLs(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(c.Context(), 5*time.Second)
+	defer cancel()
+	
+	// Parse query parameters
 	limit := 10
-	urls, err := h.service.GetRecentURLs(limit)
+	if c.Query("limit") != "" {
+		i := c.QueryInt("limit", 10)
+		if i > 0 && i <= 100 {
+			limit = i
+		}
+	}
+
+	urls, err := h.service.GetRecentURLs(ctx, limit)
 	if err != nil {
+		customLogger.Error(err, "Failed to retrieve recent URLs")
 		return fiber.NewError(fiber.StatusInternalServerError, "Failed to retrieve recent URLs")
 	}
 
@@ -109,15 +152,19 @@ func (h *URLHandler) GetRecentURLs(c *fiber.Ctx) error {
 
 // GetStats returns usage statistics
 func (h *URLHandler) GetStats(c *fiber.Ctx) error {
-	stats, err := h.service.GetStats()
+	ctx, cancel := context.WithTimeout(c.Context(), 5*time.Second)
+	defer cancel()
+	
+	stats, err := h.service.GetStats(ctx)
 	if err != nil {
+		customLogger.Error(err, "Failed to retrieve stats")
 		return fiber.NewError(fiber.StatusInternalServerError, "Failed to retrieve stats")
 	}
 
 	return c.JSON(stats)
 }
 
-// Utility function to build the full short URL
+// buildShortURL builds the full short URL from a code
 func buildShortURL(c *fiber.Ctx, code string) string {
 	return c.Protocol() + "://" + c.Hostname() + "/" + code
 }
@@ -136,7 +183,21 @@ func ErrorHandler(c *fiber.Ctx, err error) error {
 
 	// Log non-400 errors
 	if code >= 500 {
-		log.Printf("Error: %v", err)
+		customLogger.Error(err, "Server error", map[string]interface{}{
+			"status":  code,
+			"path":    c.Path(),
+			"method":  c.Method(),
+			"ip":      c.IP(),
+			"message": message,
+		})
+	} else {
+		customLogger.Debug("Client error", map[string]interface{}{
+			"status":  code,
+			"path":    c.Path(),
+			"method":  c.Method(),
+			"ip":      c.IP(),
+			"message": message,
+		})
 	}
 
 	return c.Status(code).JSON(fiber.Map{
